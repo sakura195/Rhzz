@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.bky.dao.AddMapper">
+	<resultMap id="BaseResultMap" type="com.bky.model.Add">
+		<id column="id" property="id" jdbcType="VARCHAR" />
+		<result column="tname" property="tname" jdbcType="VARCHAR" />
+		<result column="tpwd" property="tpwd" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, tname, tpwd
+	</sql>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap"
+		parameterType="java.lang.String">
+		select
+		<include refid="Base_Column_List" />
+		from tadd
+		where id = #{id,jdbcType=VARCHAR}
+	</select>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from tadd
+		where id = #{id,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insert" parameterType="com.bky.model.Add">
+		insert into tadd (id, tname,
+		tpwd
+		)
+		values (#{id,jdbcType=VARCHAR}, #{tname,jdbcType=VARCHAR},
+		#{tpwd,jdbcType=VARCHAR}
+		)
+	</insert>
+	<insert id="insertSelective" parameterType="com.bky.model.Add">
+		insert into tadd
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="tname != null">
+				tname,
+			</if>
+			<if test="tpwd != null">
+				tpwd,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="tname != null">
+				#{tname,jdbcType=VARCHAR},
+			</if>
+			<if test="tpwd != null">
+				#{tpwd,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.bky.model.Add">
+		update tadd
+		<set>
+			<if test="tname != null">
+				tname = #{tname,jdbcType=VARCHAR},
+			</if>
+			<if test="tpwd != null">
+				tpwd = #{tpwd,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where id = #{id,jdbcType=VARCHAR}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.bky.model.Add">
+		update tadd
+		set
+		tname = #{tname,jdbcType=VARCHAR},
+		tpwd = #{tpwd,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=VARCHAR}
+	</update>
+
+
+
+	<!-- —————————————————以下可用——————————————————————————————————————————————————————————————————————————————————————————— -->
+
+
+	<select id="getAll" resultMap="BaseMokuaitMap">
+		select
+		权限子模块.子模块,权限中级模块.中级模块,权限顶级模块.顶级模块,dwobject,selectsql from 权限子模块
+		left
+		join 权限中级模块
+		on 权限子模块.中级模块位置=权限中级模块.中级模块位置
+		left join 权限顶级模块
+		on
+		权限中级模块.顶级模块位置=权限顶级模块.顶级模块位置
+		where 权限子模块.子模块 like '%'+#{username}+'%'
+	</select>
+	<resultMap id="BaseMokuaitMap" type="com.bky.model.Mokuai">
+		<result column="权限子模块.子模块" property="子模块" jdbcType="VARCHAR" />
+		<result column="权限中级模块.中级模块" property="中级模块" jdbcType="VARCHAR" />
+		<result column="权限顶级模块.顶级模块" property="顶级模块" jdbcType="VARCHAR" />
+		<result column="dwobject" property="dwobject" jdbcType="VARCHAR" />
+		<result column="selectsql" property="selectsql" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<select id="queryID" resultMap="queryMokuaiMap">
+		select 子模块,子模块位置 from 权限子模块 where
+		子模块= #{name}
+	</select>
+
+	<resultMap id="queryMokuaiMap" type="java.util.Map">
+		<result column="子模块位置" property="子模块位置" jdbcType="VARCHAR" />
+		<result column="子模块" property="子模块" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<resultMap id="UserInfo" type="com.bky.model.User">
+		<result column="用户ID" property="用户ID" jdbcType="VARCHAR" />
+		<result column="登陆名" property="登陆名" jdbcType="VARCHAR" />
+		<result column="用户权限" property="用户权限" jdbcType="VARCHAR" />
+		<result column="用户组" property="用户组" jdbcType="VARCHAR" />
+		<result column="对应工号" property="对应工号" jdbcType="VARCHAR" />
+		<result column="当前查询权限位" property="当前查询权限位" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="queryUserStatus" resultMap="UserInfo">
+		select
+		用户ID,登陆名,用户权限,用户组,对应工号,SUBSTRING(用户权限,convert(int,#{id}),1) 当前查询权限位
+		from 用户登陆
+		order by 用户组
+	</select>
+	<select id="selectname" resultMap="PackageNo">
+	select 登陆名 from 用户登陆 
+	where 对应工号=#{0}
+	</select>
+
+	<resultMap id="GroupUserInfo" type="java.util.Map">
+		<result column="用户权限" property="用户权限" jdbcType="VARCHAR" />
+		<result column="用户ID" property="用户ID" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="selectUserByGroup" resultMap="GroupUserInfo">
+		select
+		stuff(用户权限,convert(int,#{0}),1,convert(int,#{1})) 用户权限,用户ID from 用户登陆
+		where 用户组=#{2}
+	</select>
+
+
+	<select id="selectUserALL" parameterType="map" resultMap="GroupUserInfo">
+		select stuff(用户权限,convert(int,#{weizhi}),1,convert(int,#{qx}))
+		用户权限,用户ID from 用户登陆
+		<where>
+			<if test=" qx ==1">
+				substring(用户权限,convert(int,#{weizhi}),1) =0
+				or
+				substring(用户权限,convert(int,#{weizhi}),1) =2
+				or
+				substring(用户权限,convert(int,#{weizhi}),1) =3
+			</if>
+			<if test=" qx ==2">
+				substring(用户权限,convert(int,#{weizhi}),1) =3
+				or
+				substring(用户权限,convert(int,#{weizhi}),1) =0
+			</if>
+			<if test=" qx ==3">
+				substring(用户权限,convert(int,#{weizhi}),1) =0
+			</if>
+			<if test=" qx ==0">
+				substring(用户权限convert(int,#{weizhi}),1) =1
+				or
+				substring(用户权限,convert(int,#{weizhi}),1) =2
+				or
+				substring(用户权限,convert(int,#{weizhi}),1) =3
+			</if>
+		</where>
+	</select>
+	<update id="updateUserByGroup" parameterType="com.bky.model.Add">
+		update 用户登陆 set
+		用户权限=#{0}
+		where 用户ID=#{1}
+
+	</update>
+	<update id="updateUserById" parameterType="com.bky.model.Add">
+		update 用户登陆 set
+		用户权限=(select
+		stuff(用户权限,convert(int,#{0}),1,convert(int,#{1})) from
+		用户登陆 where
+		用户ID=#{2}) where 用户ID=#{2}
+	</update>
+	<resultMap id="UserPass" type="java.util.Map">
+		<result column=" 登陆密码" property="password" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="queryPasswordByName" resultMap="UserPass">
+		select 登陆密码 from 用户登陆
+		where 登陆名=#{name}
+	</select>
+
+	<resultMap id="LoginUserInfo" type="java.util.Map">
+		<result column="登陆名" property="登陆名" jdbcType="VARCHAR" />
+		<result column="用户组" property="用户组" jdbcType="VARCHAR" />
+		<result column="对应工号" property="对应工号" jdbcType="VARCHAR" />
+		<result column="二级部门" property="二级部门" jdbcType="VARCHAR" />
+		<result column="三级部门" property="三级部门" jdbcType="VARCHAR" />
+		<result column="职务" property="职务" jdbcType="VARCHAR" />
+		<result column="用户ID" property="用户ID" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="QueryUserInfo" resultMap="LoginUserInfo">
+		select
+		登陆名,用户组,对应工号,二级部门,三级部门,职务,用户ID from 职工信息
+		left join 用户登陆
+		on
+		用户登陆.登陆名=职工信息.职工姓名
+		where 登陆名 is not null
+		and 登陆名=#{name}
+	</select>
+
+	<resultMap id="PackagePoji" type="com.bky.model.PackagePojo">
+		<result column="技术员" property="技术员" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="queryPackagePojiByRow" resultMap="PackagePoji">
+		select top 15 *
+		from(
+		SELECT ROW_NUMBER() OVER (ORDER BY 铸件工艺单.制定时间 desc ) AS
+		RowNumber,
+		铸件工艺单.工艺单编号 ,
+		铸件工艺单.制定时间 ,
+		铸件工艺单.评审时间 ,
+		铸件工艺单.技术员,
+		铸件工艺单.评审员,
+		铸件工艺单.备注 ,
+		铸件工艺单.图片 ,
+		铸件工艺单.模检材质确认 ,
+		铸件工艺单.造型材质确认 ,
+		铸件工艺单.底面造型准备确认 ,
+		铸件工艺单.型面造型确认 ,
+		铸件工艺单.底面造型确认,
+		铸件工艺单.排箱号,
+		铸件工艺单.材质,
+		铸件工艺单.砂箱 ,
+		铸件工艺单.浇注温度 ,
+		铸件工艺单.浇注时间 ,
+		铸件工艺单.浇注总重,
+		铸件工艺单.浇注系统方式 ,
+		铸件工艺单.浇注系统比例 ,
+		铸件工艺单.直浇道尺寸,
+		铸件工艺单.直浇道浇道数,
+		铸件工艺单.横浇道尺寸,
+		铸件工艺单.横浇道浇道数,
+		铸件工艺单.内浇道尺寸,
+		铸件工艺单.内浇道浇道数,
+		铸件工艺单.锅台,
+		铸件工艺单.排箱号1,
+		铸件工艺单.材质1,
+		铸件工艺单.砂箱1 ,
+		铸件工艺单.浇注温度1 ,
+		铸件工艺单.浇注时间1 ,
+		铸件工艺单.浇注总重1,
+		铸件工艺单.浇注系统方式1 ,
+		铸件工艺单.浇注系统比例1 ,
+		铸件工艺单.直浇道尺寸1,
+		铸件工艺单.直浇道浇道数1,
+		铸件工艺单.横浇道尺寸1,
+		铸件工艺单.横浇道浇道数1,
+		铸件工艺单.内浇道尺寸1,
+		铸件工艺单.内浇道浇道数1,
+		铸件工艺单.锅台1
+		FROM
+		铸件工艺单
+		LEFT OUTER JOIN
+		订单细则
+		ON 铸件工艺单.工艺单编号 = 订单细则.对应工艺单号
+		LEFT OUTER JOIN
+		铸件清单
+		ON 铸件工艺单.铸件编号 = 铸件清单.铸件编号
+		LEFT OUTER JOIN
+		V_订单细则工期
+		ON V_订单细则工期.订单细则号
+		= 订单细则.订单细则号
+		LEFT OUTER JOIN
+		订单
+		ON 订单细则.订单编号 = 订单.订单编号
+		LEFT OUTER JOIN
+		模具信息
+		ON 铸件工艺单.所用模具编号 = 模具信息.模具编号
+		LEFT OUTER JOIN
+		材质
+		ON 铸件工艺单.材质 = 材质.材质
+		LEFT OUTER JOIN
+		铸件BOM
+		ON 铸件BOM.工艺单编号 = 铸件工艺单.工艺单编号
+		LEFT OUTER JOIN
+		V_铸件工艺分析
+		ON V_铸件工艺分析.工艺单编号 = 铸件工艺单.工艺单编号
+
+		)b
+		where b.RowNumber>#{num}
+	</select>
+
+
+	<resultMap id="UndealPackage" type="java.util.Map">
+		<result column="客户简称" property="客户简称" jdbcType="VARCHAR" />
+		<result column="内部编号" property="内部编号" jdbcType="VARCHAR" />
+		<result column="订单细则号" property="订单细则号" jdbcType="VARCHAR" />
+		<result column="部件名称" property="部件名称" jdbcType="VARCHAR" />
+		<result column="铸件编号" property="铸件编号" jdbcType="VARCHAR" />
+		<result column="材质" property="材质" jdbcType="VARCHAR" />
+		<result column="模型厂家" property="模型厂家" jdbcType="VARCHAR" />
+		<result column="密度比" property="密度比" jdbcType="VARCHAR" />
+		<result column="项目号" property="项目号" jdbcType="VARCHAR" />
+		<result column="工序" property="工序" jdbcType="VARCHAR" />
+		<result column="订货日期" property="订货日期" jdbcType="VARCHAR" />
+		<result column="细则交货日期" property="细则交货日期" jdbcType="VARCHAR" />
+		<result column="是否有效" property="是否有效" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="queryUNdealPackage" resultMap="UndealPackage">
+		select top 25 * from(
+		SELECT ROW_NUMBER() OVER (ORDER BY 订单.订货日期 desc ) AS
+		RowNumber,
+		计划投产.内部编号 ,
+		计划生产.订单细则号 ,
+		订单细则.铸件编号 ,
+		客户.客户简称,
+		订单细则.材质,
+		模型厂家密度比初始化.泡沫密度比 AS
+		密度比,
+		订单细则.项目号,
+		订单细则.部件名称,
+		convert(varchar(100),订单细则.细则交货日期,23) 细则交货日期,
+		convert(varchar(100),订单.订货日期,23) 订货日期,
+		计划投产.工序,
+		订单细则.模型厂家,
+		计划生产.是否有效
+		FROM
+		计划生产 WITH ( nolock )
+		LEFT OUTER JOIN
+		订单细则 WITH ( nolock )
+		ON 订单细则.订单细则号 =
+		计划生产.订单细则号
+		LEFT OUTER JOIN
+		订单 WITH ( nolock )
+		ON 订单细则.订单编号
+		= 订单.订单编号
+		LEFT
+		OUTER JOIN
+		客户 WITH ( nolock )
+		ON 客户.客户=订单.客户
+		LEFT OUTER
+		JOIN
+		计划投产 WITH (
+		nolock )
+		ON 计划投产.投产号 = 计划生产.投产号
+		LEFT OUTER Join
+		模型厂家密度比初始化
+		ON
+		模型厂家密度比初始化.模型厂家 =订单细则.模型厂家
+		where
+		(
+		计划生产.工序='组箱'
+		and 计划生产.完成数
+		is null
+		and (
+		计划生产.是否有效 is null
+		or 计划生产.是否有效=''
+		)
+		)
+		AND
+		ltrim(rtrim(计划投产.内部编号)) not in(
+		select
+		内部编号
+		from
+		铸件工艺单细则
+		WHERE
+		len(内部编号)>1
+		)
+		)b
+		where b.RowNumber>#{num}
+	</select>
+
+	<update id="updateUndealPackage" parameterType="java.lang.String">
+		update 计划生产 set
+		是否有效 ='无'
+		where 订单细则号=#{id}
+	</update>
+	<select id="queryUnpackageByNo" resultMap="UndealPackage">
+		SELECT
+		计划投产.内部编号 ,
+		计划生产.订单细则号 ,
+		订单细则.铸件编号 ,
+		客户.客户简称,
+		订单细则.材质,
+		模型厂家密度比初始化.泡沫密度比 AS 密度比,
+		订单细则.项目号,
+		订单细则.部件名称,
+		convert(varchar(100),订单细则.细则交货日期,23) 细则交货日期,
+		convert(varchar(100),订单.订货日期,23) 订货日期,
+		计划投产.工序,
+		订单细则.模型厂家,
+		计划生产.是否有效
+		FROM
+		计划生产 WITH ( nolock )
+		LEFT OUTER JOIN
+		订单细则 WITH ( nolock )
+		ON 订单细则.订单细则号 =
+		计划生产.订单细则号
+		LEFT OUTER JOIN
+		订单 WITH ( nolock )
+		ON 订单细则.订单编号
+		= 订单.订单编号
+		LEFT
+		OUTER JOIN
+		客户 WITH ( nolock )
+		ON 客户.客户=订单.客户
+		LEFT OUTER
+		JOIN
+		计划投产 WITH (
+		nolock )
+		ON 计划投产.投产号 = 计划生产.投产号
+		LEFT OUTER Join
+		模型厂家密度比初始化
+		ON
+		模型厂家密度比初始化.模型厂家 =订单细则.模型厂家
+		where
+		(
+		计划生产.工序='组箱'
+		and 计划生产.完成数
+		is null
+		and (
+		计划生产.是否有效 is null
+		or 计划生产.是否有效=''
+		)
+		)
+		AND
+		ltrim(rtrim(计划投产.内部编号)) not in(
+		select
+		内部编号
+		from
+		铸件工艺单细则
+		WHERE
+		len(内部编号)>1
+		)
+		and 计划生产.订单细则号=#{no}
+	</select>
+
+	<resultMap id="PackageNo" type="java.lang.String">
+		<result column="NO" property="NO" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="querylastPackageNo" resultMap="PackageNo">
+		select max(排箱号)NO from
+		铸件工艺单
+		where 排箱号 like '%'+#{no}+'%'
+	</select>
+
+	<select id="queryPackageNo" resultMap="PackageNo">
+		select
+		max(substring(工艺单编号,3,10))NO from 铸件工艺单
+	</select>
+	<resultMap id="materialquality" type="java.lang.String">
+		<result column="内部材质" property="内部材质" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="querymaterialquality" resultMap="materialquality">
+		select
+		DISTINCT 内部材质
+		from
+		材质
+
+	</select>
+
+	<insert id="shitangdiaocha">
+		insert into 食堂满意度调查(是否满意
+		,意见
+		,投票时间)
+		values(#{0},#{1},#{2})
+
+	</insert>
+	<insert id="insertpackage">
+		insert into
+		铸件工艺单(工艺单编号,浇注温度,备注,浇注时间,是否入库质检,材质,技术员,制定时间,是否合箱检验,砂箱,图片,浇注总重,材质1,浇注总重1,浇注系统比例1,浇注系统比例,浇注系统方式1,出气口,出气口1,锅台,锅台1,浇注系统方式,排箱号1,排箱号,砂箱1,浇注温度1,浇注时间1,拉延模,拉延模1,浇注系统说明,浇注系统说明1)values(#{0},#{1},#{2},#{3},#{4},#{5},#{6},#{7},#{8},#{9},#{10},#{11},#{12},#{13},#{14},#{15},#{16},#{17},#{18},#{19},#{20},#{21},#{22},#{23},#{24},#{25},#{26},#{27},#{28},#{29},#{30})
+	</insert>
+	<insert id="insertdetailPackage">
+		insert into 铸件工艺单细则(
+		工艺细则编号,铸件编号,工艺单编号,材质,单重,内浇口数量,订单细则号,排箱号,备注,密度比,内部编号,客户简称)
+		values(#{0},#{1},#{2},#{3},#{4},#{5},#{6},#{7},#{8},#{9},#{10},#{11})
+	</insert>
+	<insert id="insertjiaokou">
+		insert into 铸件工艺工具
+		(类型,规格,数量,排箱号,工艺单编号)values(#{0},#{1},#{2},#{3},#{4})
+	</insert>
+	<select id="selectlastNo" resultMap="PackageNo">
+		select max(序号)NO from 铸件工艺工具
+	</select>
+
+	<delete id="deletegyzb" parameterType="java.lang.String">
+		delete FROM 铸件工艺单
+		where
+		工艺单编号=#{no}
+	</delete>
+	<delete id="deletegygj">
+		delete from 铸件工艺工具
+		where 工艺单编号=#{no}
+	</delete>
+
+	<resultMap id="SignUserInfo" type="java.util.Map">
+		<result column="登陆名" property="登陆名" jdbcType="VARCHAR" />
+		<result column="对应工号" property="对应工号" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="queryAlluserinfo" resultMap="SignUserInfo">
+		select 登陆名,对应工号 from
+		用户登陆
+	</select>
+
+	<select id="querypackage" resultMap="PackagePoji">
+		SELECT
+		铸件工艺单.工艺单编号 ,
+		convert(varchar(20),铸件工艺单.制定时间,120)制定时间 ,
+		铸件工艺单.评审时间 ,
+		铸件工艺单.技术员,
+		铸件工艺单.评审员,
+		铸件工艺单.备注 ,
+		铸件工艺单.图片 ,
+		铸件工艺单.模检材质确认 ,
+		铸件工艺单.造型材质确认 ,
+		铸件工艺单.底面造型准备确认 ,
+		铸件工艺单.型面造型确认 ,
+		铸件工艺单.底面造型确认,
+		铸件工艺单.排箱号,
+		铸件工艺单.材质,
+		铸件工艺单.砂箱 ,
+		铸件工艺单.浇注温度 ,
+		铸件工艺单.浇注时间 ,
+		铸件工艺单.浇注总重,
+		铸件工艺单.浇注系统方式 ,
+		铸件工艺单.直浇道尺寸,
+		铸件工艺单.直浇道浇道数,
+		铸件工艺单.横浇道尺寸,
+		铸件工艺单.横浇道浇道数,
+		铸件工艺单.内浇道尺寸,
+		铸件工艺单.内浇道浇道数,
+		铸件工艺单.锅台,
+		铸件工艺单.出气口,
+		铸件工艺单.负压,
+		铸件工艺单.拉延模,
+		铸件工艺单.排箱号1,
+		铸件工艺单.材质1,
+		铸件工艺单.砂箱1 ,
+		铸件工艺单.浇注温度1 ,
+		铸件工艺单.浇注时间1 ,
+		铸件工艺单.浇注总重1,
+		铸件工艺单.浇注系统方式1 ,
+		铸件工艺单.直浇道尺寸1,
+		铸件工艺单.直浇道浇道数1,
+		铸件工艺单.横浇道尺寸1,
+		铸件工艺单.横浇道浇道数1,
+		铸件工艺单.内浇道尺寸1,
+		铸件工艺单.内浇道浇道数1,
+		铸件工艺单.锅台1,
+		铸件工艺单.出气口1,
+		铸件工艺单.拉延模1,
+		铸件工艺单.浇注系统比例,
+		铸件工艺单.浇注系统比例1,
+		浇注系统说明,
+		浇注系统说明1
+		FROM
+		铸件工艺单
+		where
+		rtrim(铸件工艺单.工艺单编号)=#{no}
+	</select>
+	<update id="updatepackage">
+		update 铸件工艺单 set
+		备注=#{0},
+		排箱号=#{1},
+		材质=#{2},
+		砂箱 =#{3},
+		浇注温度 =#{4},
+		浇注时间 =#{5},
+		浇注总重=#{6},
+		浇注系统方式 =#{7},
+		锅台=#{8},
+		出气口=#{9},
+		浇注系统说明1=#{10},
+		拉延模=#{11},
+		排箱号1=#{12},
+		材质1=#{13},
+		砂箱1 =#{14},
+		浇注温度1=#{15} ,
+		浇注时间1=#{16} ,
+		浇注总重1=#{17},
+		浇注系统方式1 =#{18},
+		锅台1=#{19},
+		出气口1=#{20},
+		拉延模1=#{21},
+		浇注系统比例=#{22},
+		浇注系统比例1=#{23},
+		浇注系统说明=#{24}
+		where
+		铸件工艺单.工艺单编号=#{25}
+	</update>
+	<resultMap id="PackageDetailPojo" type="com.bky.model.PackageDetailPojo">
+		<result column="工艺细则编号" property="工艺单细则号" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="querydetailPackage" resultMap="PackageDetailPojo">
+
+		SELECT
+		铸件工艺单细则.工艺单编号,
+		铸件工艺单细则.工艺细则编号,
+		铸件工艺单细则.内部编号,
+		铸件工艺单细则.铸件编号,
+		铸件工艺单细则.材质,
+		铸件工艺单细则.排箱号,
+		铸件工艺单细则.订单细则号,
+		铸件工艺单细则.客户简称,
+		铸件工艺单细则.单重,
+		铸件工艺单细则.内浇口数量,
+		铸件工艺单细则.备注,
+		铸件工艺单细则.密度比
+		FROM
+		铸件工艺单细则
+		where
+		rtrim(铸件工艺单细则.工艺单编号)=#{no}
+
+	</select>
+	<update id="updateDetailPackage">
+		update 铸件工艺单细则 set
+		材质=#{0},
+		单重=#{1},
+		内浇口数量=#{2},
+		排箱号=#{3},
+		备注=#{4},
+		密度比=#{5},
+		内部编号=#{6},
+		客户简称=#{7}
+		where 工艺细则编号=#{8}
+
+	</update>
+
+	<update id="deleteDetailPackage">
+		delete FROM 铸件工艺单细则
+		where
+		工艺细则编号=#{no}
+
+	</update>
+	<insert id="insertDetailPackage">
+		insert into
+		铸件工艺单细则(材质,单重,内浇口数量,排箱号,备注,密度比,内部编号,客户简称,工艺细则编号,铸件编号,工艺单编号)
+		values(#{0},#{1},#{2},#{3},#{4},#{5},#{6},#{7},#{8},#{9},#{10})
+
+	</insert>
+
+	<update id="updatePackageWight">
+		update 铸件工艺单 set 浇注总重=#{0},浇注时间=#{1} where 工艺单编号=#{2}
+
+	</update>
+	<update id="updatePackageWight2">
+		update 铸件工艺单 set 浇注总重1=#{0},浇注时间1=#{1} where
+		工艺单编号=#{2}
+	</update>
+	<select id="queryPicupload" resultMap="PackageNo">
+		select 图片 NO from 铸件工艺单
+		where 工艺单编号=#{no}
+	</select>
+	<update id="updatePicname">
+
+		update 铸件工艺单 set 图片=#{0}
+		where 工艺单编号=#{1}
+	</update>
+	<update id="updatetcnbbh">
+		UPDATE 计划投产 set 内部编号=#{0} WHERE 细则号=#{1}
+	</update>
+	<insert id="insertRemind">
+		insert into 内部编号变更
+		values(#{0},#{1},#{2},NULL,getdate(),NULL)
+	</insert>
+	<select id="selectNBBH" resultMap="bbh">
+		select 产品件号,内部编号,细则号 from 计划投产
+		where 内部编号 like'LSBH000%'
+	</select>
+	<resultMap id="bbh" type="java.util.Map">
+		<result column="产品件号" property="产品件号" jdbcType="VARCHAR" />
+		<result column="内部编号" property="内部编号" jdbcType="VARCHAR" />
+		<result column="细则号" property="细则号" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="queryBoard" resultMap="Board">
+select convert(int,ltrim(rtrim(序号))) as 序号,A,B,C,D,E,F,G,H,I,J,K from 历史看板数据源
+where convert(varchar(10),日期,120) =#{0}
+and 看板类型=#{1}
+order by convert(int,ltrim(rtrim(序号))) 
+	</select>
+	<resultMap id="Board" type="java.util.Map">
+		<result column="序号" property="序号" jdbcType="VARCHAR"/>
+		<result column="A" property="A" jdbcType="VARCHAR"/>
+		<result column="B" property="B" jdbcType="VARCHAR"/>
+		<result column="C" property="C" jdbcType="VARCHAR"/>
+		<result column="D" property="D" jdbcType="VARCHAR"/>
+		<result column="E" property="E" jdbcType="VARCHAR"/>
+		<result column="F" property="F" jdbcType="VARCHAR"/>
+		<result column="G" property="G" jdbcType="VARCHAR"/>
+		<result column="H" property="H" jdbcType="VARCHAR"/>
+		<result column="I" property="I" jdbcType="VARCHAR"/>
+		<result column="J" property="J" jdbcType="VARCHAR"/>
+		<result column="K" property="K" jdbcType="VARCHAR"/>
+	</resultMap>
+<select id="queryFaceUserInfo" resultMap="FaceInfo">
+select 对应工号,用户组,登陆名 from 用户登陆 
+where 对应工号=#{1}
+</select>
+<resultMap id="FaceInfo" type="java.util.Map">
+		<result column="对应工号" property="对应工号" jdbcType="VARCHAR"/>
+		<result column="用户组" property="用户组" jdbcType="VARCHAR"/>
+		<result column="登陆名" property="登陆名" jdbcType="VARCHAR"/>
+	</resultMap>
+
+</mapper>

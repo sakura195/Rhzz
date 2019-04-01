@@ -1,0 +1,44 @@
+/*#popup===start*/
+.popups,.popupsBackdrop {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+.popupsBackdrop {
+	background-color: #000;
+	opacity: .5; 
+	filter: alpha(opacity = 50); 
+	z-index: 1030;
+}
+.popups {
+	text-align: center;
+	z-index: 1040;
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+.popup-div-top{
+	width:100%;
+	height:45px;
+	border-bottom:1px solid lightgray;
+	background-color:lightgray;
+}
+.popup-div-topSpan{
+	line-height:45px;
+	height:45px;
+	margin-left:45px;
+	font-weight:bold;
+	font-size:14px;
+	font-family: monospace,monospace;
+}
+.popup-div-topDiv{
+	width:45px;
+	height:45px;
+	margin-right:5px;
+	line-height:45px;
+	float:right;
+	color:#387DF6;
+	font-size:12px;
+}
+/*#popup==end*/
